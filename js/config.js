@@ -21,7 +21,7 @@
 
 const CONFIG = {
   // ← PASTE YOUR GOOGLE OAUTH CLIENT ID HERE
-  CLIENT_ID: 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com',
+  CLIENT_ID: '165826842046-0k618s6kuvc3olmat8aj1gru0t87p62b.apps.googleusercontent.com',
 
   // Scopes needed — DO NOT change
   SCOPES: [
