@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>CertiLink</title>
+  <!-- GitHub Pages SPA redirect: send all 404s back to index.html with hash routing -->
+  <script>
+    // Preserve the path as a hash so the router can handle it
+    const path = window.location.pathname;
+    const search = window.location.search;
+    // Redirect to root with the path stored in hash
+    const redirectUrl = window.location.origin + window.location.pathname.split('/').slice(0, -1).join('/') +
+      '/index.html#' + path + (search ? '?' + search.slice(1) : '');
+    window.location.replace(redirectUrl);
+  </script>
+</head>
+<body>Redirecting…</body>
+</html>
