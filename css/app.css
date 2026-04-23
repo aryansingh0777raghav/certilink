@@ -268,11 +268,17 @@ html[data-theme="light"] .modal-box {
 }
 
 /* ── Responsive — Mobile First ── */
+
+/* Prevent horizontal scroll globally */
+html, body { overflow-x: hidden; max-width: 100vw; }
+#app { overflow-x: hidden; }
+
 @media (max-width: 640px) {
   .stat-num { font-size: 1.6rem; }
 
   /* Nav on mobile */
   nav .font-display { font-size: 1rem; }
+  nav { padding-left: 16px; padding-right: 16px; }
 
   /* Modal full-screen on mobile */
   .modal-box {
@@ -304,9 +310,9 @@ html[data-theme="light"] .modal-box {
     grid-column: span 1;
   }
 
-  /* Hero text scaling */
-  .text-5xl { font-size: 2.5rem !important; }
-  .text-7xl { font-size: 2.8rem !important; }
+  /* Hero section mobile */
+  main { padding-left: 16px !important; padding-right: 16px !important; }
+  h1 { word-wrap: break-word; overflow-wrap: break-word; }
 
   /* Cert card compact on mobile */
   .cert-card { padding: 14px; }
@@ -330,7 +336,19 @@ html[data-theme="light"] .modal-box {
   /* Profile section stack */
   .sm\:flex-row { flex-direction: column; }
 
-  /* Sync status hidden on mobile to save space - already hidden by sm:inline-block */
+  /* Features grid: full width cards */
+  .sm\:grid-cols-3 { grid-template-columns: 1fr !important; }
+
+  /* Glass card padding on mobile */
+  .glass-card { padding: 16px; }
+
+  /* Badge wrapping */
+  .badge { white-space: nowrap; font-size: 0.65rem; }
+
+  /* Feedback floating button compact */
+  #feedbackBtn { padding: 6px 12px; font-size: 0.65rem; bottom: 12px; left: 12px; }
+
+  /* Sync status hidden on mobile */
   #syncStatus { display: none; }
 }
 

@@ -9,13 +9,13 @@ const HomePage = (() => {
   function render() {
     const app = document.getElementById('app');
     app.innerHTML = `
-      <div class="relative min-h-screen flex flex-col overflow-hidden">
+      <div class="relative min-h-screen flex flex-col">
 
         <!-- Background blobs -->
         <div class="blob w-96 h-96 top-[-80px] left-[-80px] opacity-20"
-             style="background: radial-gradient(circle, #F5C842, transparent 70%)"></div>
+             style="background: radial-gradient(circle, #F5C842, transparent 70%); position:fixed;"></div>
         <div class="blob w-72 h-72 bottom-[-40px] right-[-40px] opacity-15"
-             style="background: radial-gradient(circle, #FF8C42, transparent 70%); animation-delay: 4s;"></div>
+             style="background: radial-gradient(circle, #FF8C42, transparent 70%); animation-delay: 4s; position:fixed;"></div>
 
         <!-- Nav -->
         <nav class="flex items-center justify-between px-5 pt-5 pb-2 max-w-5xl mx-auto w-full">
@@ -33,12 +33,12 @@ const HomePage = (() => {
         <main class="flex-1 flex flex-col items-center justify-center text-center px-5 py-12">
 
           <!-- Trust badge -->
-          <div class="fade-in delay-1 inline-flex items-center gap-2 badge mb-5 text-xs px-4 py-2">
-            <span>✦</span>Powered by Your Google Drive · 100% Free
+          <div class="fade-in delay-1 inline-flex items-center gap-2 badge mb-5 text-xs px-3 py-2" style="word-wrap: break-word;">
+            <span>✦</span>Google Drive powered · 100% Free
           </div>
 
-          <h1 class="fade-in delay-2 font-display font-extrabold leading-tight mb-5 max-w-2xl"
-              style="font-size: clamp(2.2rem, 7vw, 4.5rem);">
+          <h1 class="fade-in delay-2 font-display font-extrabold leading-tight mb-5 w-full"
+              style="font-size: clamp(1.8rem, 6vw, 4.5rem); word-wrap: break-word; overflow-wrap: break-word;">
             Your certificates,<br/>
             <span class="text-gold">one shareable link.</span>
           </h1>
