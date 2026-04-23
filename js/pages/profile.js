@@ -23,7 +23,8 @@ const ProfilePage = (() => {
     // Decode from URL payload if available
     if (params.data) {
       try {
-        const decoded = JSON.parse(atob(decodeURIComponent(params.data)));
+        const base64Data = decodeURIComponent(params.data);
+        const decoded = JSON.parse(decodeURIComponent(escape(atob(base64Data))));
         if (decoded.certs)   certs   = decoded.certs;
         if (decoded.profile) profile = decoded.profile;
       } catch {}

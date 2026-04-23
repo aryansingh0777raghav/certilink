@@ -13,20 +13,70 @@ const DashboardPage = (() => {
 
   // ── Load / save helpers ──
   function _loadCerts()   { try { return JSON.parse(localStorage.getItem(CERT_KEY()) || '[]'); } catch { return []; } }
-  function _saveCerts(c)  { localStorage.setItem(CERT_KEY(), JSON.stringify(c)); }
+  function _saveCerts(c)  { localStorage.setItem(CERT_KEY(), JSON.stringify(c)); _syncToDrive(); }
   function _loadProfile() { try { return JSON.parse(localStorage.getItem(PROFILE_KEY()) || '{}'); } catch { return {}; } }
-  function _saveProfile(p){ localStorage.setItem(PROFILE_KEY(), JSON.stringify(p)); }
+  function _saveProfile(p){ localStorage.setItem(PROFILE_KEY(), JSON.stringify(p)); _syncToDrive(); }
+
+  let _syncTimeout = null;
+  async function _syncToDrive() {
+    clearTimeout(_syncTimeout);
+    _syncTimeout = setTimeout(async () => {
+      const statusEl = document.getElementById('syncStatus');
+      if (statusEl) statusEl.innerHTML = '☁️ Syncing...';
+      try {
+        await Drive.saveAppData({ certs: _certs, profile: _profile });
+        if (statusEl) statusEl.innerHTML = '☁️ Saved to Drive';
+      } catch (e) {
+        console.error('Drive sync error:', e);
+        if (statusEl) statusEl.innerHTML = '⚠️ Sync failed';
+      }
+    }, 1500); // debounce 1.5s
+  }
 
   const CERT_EMOJIS = ['🏆','🎓','📜','✅','⭐','🥇','🔑','💡','🚀','📊','☁️','💻','🛡️','📱','🎯'];
 
-  function render() {
+  async function render() {
     if (!Auth.isSignedIn()) { Router.navigate('/'); return; }
     const user = Auth.getUser();
     _certs   = _loadCerts();
     _profile = _loadProfile();
     if (!_profile.name) _profile = { name: user?.name || 'My Portfolio', bio: '', picture: user?.picture || '' };
 
-    const profileUrl = `${CONFIG.BASE_URL}/index.html#/user?id=${Auth.getUserId()}`;
+    _renderUI(user);
+
+    // Fetch latest data from Drive
+    const statusEl = document.getElementById('syncStatus');
+    if (statusEl) statusEl.innerHTML = '☁️ Fetching data...';
+    try {
+      const driveData = await Drive.loadAppData();
+      if (driveData) {
+        let changed = false;
+        if (JSON.stringify(_certs) !== JSON.stringify(driveData.certs || [])) changed = true;
+        if (JSON.stringify(_profile) !== JSON.stringify(driveData.profile || {})) changed = true;
+        
+        if (changed) {
+          _certs = driveData.certs || [];
+          _profile = driveData.profile || {};
+          // Update cache without triggering a re-sync up to Drive
+          localStorage.setItem(CERT_KEY(), JSON.stringify(_certs));
+          localStorage.setItem(PROFILE_KEY(), JSON.stringify(_profile));
+          _renderUI(user); // Re-render with cloud data
+        }
+      }
+      const newStatus = document.getElementById('syncStatus');
+      if (newStatus) newStatus.innerHTML = '☁️ Up to date';
+    } catch (e) {
+      console.error(e);
+      const newStatus = document.getElementById('syncStatus');
+      if (newStatus) newStatus.innerHTML = '⚠️ Sync error';
+    }
+  }
+
+  function _renderUI(user) {
+    // Encode data for the share URL (supports unicode emojis)
+    const payloadStr = JSON.stringify({ certs: _certs, profile: _profile });
+    const base64Data = btoa(unescape(encodeURIComponent(payloadStr)));
+    const profileUrl = `${CONFIG.BASE_URL}/index.html#/user?id=${Auth.getUserId()}&data=${encodeURIComponent(base64Data)}`;
 
     document.getElementById('app').innerHTML = `
       <div class="min-h-screen flex flex-col">
@@ -38,6 +88,7 @@ const DashboardPage = (() => {
             <span class="font-display font-800 text-lg text-gold">CertiLink</span>
           </div>
           <div class="flex items-center gap-3">
+            <span id="syncStatus" class="text-xs opacity-50 font-mono hidden sm:inline-block"></span>
             <button id="shareBtn" class="btn btn-ghost text-xs py-2 px-4">
               🔗 Share Portfolio
             </button>
@@ -313,10 +364,10 @@ const DashboardPage = (() => {
         };
 
         _certs.unshift(cert);
-        _saveCerts(_certs);
+        _saveCerts(_certs); // Will trigger drive sync
 
         UI.toast(`"${name}" uploaded successfully!`, 'success');
-        render(); // re-render dashboard
+        _renderUI(Auth.getUser()); // re-render dashboard
       } catch (e) {
         UI.toast('Upload failed: ' + e.message, 'error');
         btn.disabled = false;
@@ -337,9 +388,9 @@ const DashboardPage = (() => {
         try {
           if (cert.driveFileId) await Drive.deleteFile(cert.driveFileId);
           _certs = _certs.filter(c => c.id !== id);
-          _saveCerts(_certs);
+          _saveCerts(_certs); // Will trigger drive sync
           UI.toast('Certificate deleted', 'info');
-          render();
+          _renderUI(Auth.getUser());
         } catch (e) {
           UI.toast('Delete failed: ' + e.message, 'error');
         }
@@ -416,10 +467,10 @@ const DashboardPage = (() => {
     modal.querySelector('#saveProfile').addEventListener('click', () => {
       _profile.name = modal.querySelector('#profileName').value.trim() || _profile.name;
       _profile.bio  = modal.querySelector('#profileBio').value.trim();
-      _saveProfile(_profile);
+      _saveProfile(_profile); // Will trigger drive sync
       modal.remove();
       UI.toast('Profile updated', 'success');
-      render();
+      _renderUI(Auth.getUser());
     });
   }
 

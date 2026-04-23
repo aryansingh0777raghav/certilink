@@ -10,6 +10,7 @@ const Drive = (() => {
   const BASE = 'https://www.googleapis.com/drive/v3';
   const UPLOAD_BASE = 'https://www.googleapis.com/upload/drive/v3';
   const FOLDER_MIME = 'application/vnd.google-apps.folder';
+  const DATA_FILE_NAME = 'certilink_data.json';
 
   let _folderId = null;
   const FOLDER_ID_KEY = 'certilink_folder_id';
@@ -179,5 +180,71 @@ const Drive = (() => {
     if (!res.ok && res.status !== 204) throw new Error('Delete failed');
   }
 
-  return { uploadFile, listFiles, deleteFile, getViewLink, getThumbnailLink, ensureFolder };
+  /**
+   * Load JSON app data from the CertiLink folder
+   */
+  async function loadAppData() {
+    try {
+      const folderId = await ensureFolder();
+      const q = encodeURIComponent(`name='${DATA_FILE_NAME}' and '${folderId}' in parents and trashed=false`);
+      const search = await _fetch(`${BASE}/files?q=${q}&fields=files(id)`);
+      if (!search.files || search.files.length === 0) return null;
+
+      const fileId = search.files[0].id;
+      const token = await Auth.getToken();
+      const res = await fetch(`${BASE}/files/${fileId}?alt=media`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!res.ok) return null;
+      return res.json();
+    } catch (e) {
+      console.error('Error loading app data from Drive:', e);
+      return null;
+    }
+  }
+
+  /**
+   * Save JSON app data to the CertiLink folder
+   */
+  async function saveAppData(data) {
+    const folderId = await ensureFolder();
+    const q = encodeURIComponent(`name='${DATA_FILE_NAME}' and '${folderId}' in parents and trashed=false`);
+    const search = await _fetch(`${BASE}/files?q=${q}&fields=files(id)`);
+
+    const fileContent = JSON.stringify(data);
+    const token = await Auth.getToken();
+
+    if (search.files && search.files.length > 0) {
+      // Update existing file content
+      const fileId = search.files[0].id;
+      const res = await fetch(`${UPLOAD_BASE}/files/${fileId}?uploadType=media`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: fileContent
+      });
+      if (!res.ok) throw new Error('Failed to update app data on Drive');
+    } else {
+      // Create metadata first
+      const meta = await _fetch(`${BASE}/files`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: DATA_FILE_NAME, parents: [folderId], mimeType: 'application/json' })
+      });
+      // Then upload content
+      const res = await fetch(`${UPLOAD_BASE}/files/${meta.id}?uploadType=media`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: fileContent
+      });
+      if (!res.ok) throw new Error('Failed to save new app data to Drive');
+    }
+  }
+
+  return { uploadFile, listFiles, deleteFile, getViewLink, getThumbnailLink, ensureFolder, loadAppData, saveAppData };
 })();
