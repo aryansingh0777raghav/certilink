@@ -12,19 +12,38 @@
 
 const ProfilePage = (() => {
 
-  function render(params) {
+  async function render(params) {
     const userId = params.id;
     if (!userId) { Router.navigate('/'); return; }
 
-    // Try to read data from localStorage (works if same browser, or demo)
+    // Show a fast loading skeleton while fetching from Drive
+    document.getElementById('app').innerHTML = `
+      <div class="min-h-screen flex items-center justify-center">
+        <div class="text-center opacity-40">
+          <div class="text-4xl mb-4 animate-spin">☁️</div>
+          <p class="text-sm font-mono">Loading portfolio...</p>
+        </div>
+      </div>`;
+
+    // Try to read data from localStorage first (fast path, same browser)
     let certs   = _loadData(`certilink_certs_${userId}`);
     let profile = _loadData(`certilink_profile_${userId}`);
 
-    // Decode from URL payload if available
-    if (params.data) {
+    // Priority 1: Fetch from public Drive file (new short URL via ?fid=)
+    if (params.fid) {
       try {
-        const base64Data = decodeURIComponent(params.data);
-        const decoded = JSON.parse(decodeURIComponent(escape(atob(base64Data))));
+        const driveData = await Drive.loadPublicData(params.fid);
+        if (driveData) {
+          if (driveData.certs)   certs   = driveData.certs;
+          if (driveData.profile) profile = driveData.profile;
+        }
+      } catch (e) { console.warn('Could not load from Drive, falling back:', e); }
+    }
+
+    // Priority 2: Fallback — decode old-style base64 payload from URL
+    if (!certs && params.data) {
+      try {
+        const decoded = JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(params.data)))));
         if (decoded.certs)   certs   = decoded.certs;
         if (decoded.profile) profile = decoded.profile;
       } catch {}

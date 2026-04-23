@@ -17,6 +17,8 @@ const DashboardPage = (() => {
   function _loadProfile() { try { return JSON.parse(localStorage.getItem(PROFILE_KEY()) || '{}'); } catch { return {}; } }
   function _saveProfile(p){ localStorage.setItem(PROFILE_KEY(), JSON.stringify(p)); _syncToDrive(); }
 
+  const DATA_FILE_ID_KEY = () => `certilink_data_fid_${Auth.getUserId()}`;
+
   let _syncTimeout = null;
   async function _syncToDrive() {
     clearTimeout(_syncTimeout);
@@ -24,7 +26,8 @@ const DashboardPage = (() => {
       const statusEl = document.getElementById('syncStatus');
       if (statusEl) statusEl.innerHTML = '☁️ Syncing...';
       try {
-        await Drive.saveAppData({ certs: _certs, profile: _profile });
+        const fileId = await Drive.saveAppData({ certs: _certs, profile: _profile });
+        if (fileId) localStorage.setItem(DATA_FILE_ID_KEY(), fileId);
         if (statusEl) statusEl.innerHTML = '☁️ Saved to Drive';
       } catch (e) {
         console.error('Drive sync error:', e);
@@ -73,10 +76,11 @@ const DashboardPage = (() => {
   }
 
   function _renderUI(user) {
-    // Encode data for the share URL (supports unicode emojis)
-    const payloadStr = JSON.stringify({ certs: _certs, profile: _profile });
-    const base64Data = btoa(unescape(encodeURIComponent(payloadStr)));
-    const profileUrl = `${CONFIG.BASE_URL}/index.html#/user?id=${Auth.getUserId()}&data=${encodeURIComponent(base64Data)}`;
+    // Build a short, clean share URL — profile page fetches data via Drive file ID
+    const dataFileId = localStorage.getItem(DATA_FILE_ID_KEY()) || '';
+    const profileUrl = dataFileId
+      ? `${CONFIG.BASE_URL}/index.html#/user?id=${Auth.getUserId()}&fid=${dataFileId}`
+      : `${CONFIG.BASE_URL}/index.html#/user?id=${Auth.getUserId()}`;
 
     document.getElementById('app').innerHTML = `
       <div class="min-h-screen flex flex-col">

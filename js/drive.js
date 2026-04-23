@@ -204,7 +204,8 @@ const Drive = (() => {
   }
 
   /**
-   * Save JSON app data to the CertiLink folder
+   * Save JSON app data to the CertiLink folder.
+   * Returns the Drive file ID so it can be stored in the share URL.
    */
   async function saveAppData(data) {
     const folderId = await ensureFolder();
@@ -213,10 +214,11 @@ const Drive = (() => {
 
     const fileContent = JSON.stringify(data);
     const token = await Auth.getToken();
+    let fileId;
 
     if (search.files && search.files.length > 0) {
       // Update existing file content
-      const fileId = search.files[0].id;
+      fileId = search.files[0].id;
       const res = await fetch(`${UPLOAD_BASE}/files/${fileId}?uploadType=media`, {
         method: 'PATCH',
         headers: {
@@ -233,8 +235,9 @@ const Drive = (() => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: DATA_FILE_NAME, parents: [folderId], mimeType: 'application/json' })
       });
-      // Then upload content
-      const res = await fetch(`${UPLOAD_BASE}/files/${meta.id}?uploadType=media`, {
+      fileId = meta.id;
+      // Upload content
+      const res = await fetch(`${UPLOAD_BASE}/files/${fileId}?uploadType=media`, {
         method: 'PATCH',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -243,8 +246,26 @@ const Drive = (() => {
         body: fileContent
       });
       if (!res.ok) throw new Error('Failed to save new app data to Drive');
+      // Make publicly readable so share link works without login
+      await _makePublic(fileId);
+    }
+    return fileId;
+  }
+
+  /**
+   * Fetch public app data using only a Drive file ID (no auth needed).
+   * Uses the public export URL.
+   */
+  async function loadPublicData(fileId) {
+    try {
+      const res = await fetch(`https://drive.google.com/uc?export=download&id=${fileId}`);
+      if (!res.ok) return null;
+      return res.json();
+    } catch (e) {
+      console.error('loadPublicData error:', e);
+      return null;
     }
   }
 
-  return { uploadFile, listFiles, deleteFile, getViewLink, getThumbnailLink, ensureFolder, loadAppData, saveAppData };
+  return { uploadFile, listFiles, deleteFile, getViewLink, getThumbnailLink, ensureFolder, loadAppData, saveAppData, loadPublicData };
 })();
