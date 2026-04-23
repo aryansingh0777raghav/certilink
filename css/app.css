@@ -267,7 +267,82 @@ html[data-theme="light"] .modal-box {
   border-color: rgba(0,0,0,0.1);
 }
 
-/* ── Responsive ── */
+/* ── Responsive — Mobile First ── */
 @media (max-width: 640px) {
-  .stat-num { font-size: 1.8rem; }
+  .stat-num { font-size: 1.6rem; }
+
+  /* Nav on mobile */
+  nav .font-display { font-size: 1rem; }
+
+  /* Modal full-screen on mobile */
+  .modal-box {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    border-radius: 18px 18px 0 0;
+    padding: 24px 20px;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    animation: slideUp 0.3s ease;
+  }
+  .modal-backdrop {
+    align-items: flex-end;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+  }
+
+  /* Buttons full width on mobile where needed */
+  .btn { font-size: 0.85rem; padding: 9px 18px; }
+
+  /* Dashboard layout: stack on mobile */
+  .lg\:col-span-1,
+  .lg\:col-span-2 {
+    grid-column: span 1;
+  }
+
+  /* Hero text scaling */
+  .text-5xl { font-size: 2.5rem !important; }
+  .text-7xl { font-size: 2.8rem !important; }
+
+  /* Cert card compact on mobile */
+  .cert-card { padding: 14px; }
+  .cert-icon { width: 38px; height: 38px; font-size: 1.1rem; }
+
+  /* Toast full width at bottom */
+  #toastContainer {
+    left: 12px;
+    right: 12px;
+    bottom: 16px;
+  }
+  .toast { min-width: unset; width: 100%; }
+
+  /* Drop zone smaller on mobile */
+  #dropZone { padding: 32px 16px; }
+
+  /* Stats grid: 2 cols on mobile for better use of space */
+  .grid-cols-3 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .grid-cols-3 > div:last-child { grid-column: span 2; }
+
+  /* Profile section stack */
+  .sm\:flex-row { flex-direction: column; }
+
+  /* Sync status hidden on mobile to save space - already hidden by sm:inline-block */
+  #syncStatus { display: none; }
+}
+
+/* Tablet adjustments */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .stat-num { font-size: 2rem; }
+  .lg\:grid-cols-3 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+}
+
+/* Touch devices — larger tap targets */
+@media (hover: none) {
+  .btn { min-height: 44px; }
+  .delete-cert { min-height: 36px; min-width: 36px; }
+  .emoji-opt { width: 40px !important; height: 40px !important; }
 }

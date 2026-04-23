@@ -41,6 +41,10 @@
     ProfilePage.render(params);
   });
 
+  Router.on('/privacy', () => {
+    PrivacyPage.render();
+  });
+
   // Start routing
   Router.start();
 })();

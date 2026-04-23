@@ -19,8 +19,7 @@
   <!-- Google Identity Services -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 
-  <!-- QR Code library -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
 
   <script>
     tailwind.config = {
@@ -69,6 +68,17 @@
   <!-- Toast container -->
   <div id="toastContainer" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
+  <!-- Floating Feedback Button -->
+  <a id="feedbackBtn"
+    href="mailto:aryansingh979211@gmail.com?subject=CertiLink%20Feedback%20/%20Issue&body=Hi%20Aryan%2C%0A%0A%5BDescribe%20your%20feedback%20or%20issue%20here%5D%0A%0AThanks!"
+    title="Send feedback or report an issue"
+    class="fixed bottom-6 left-6 z-50 flex items-center gap-2 px-4 py-2 rounded-full text-xs font-mono font-medium backdrop-blur transition-all"
+    style="background: rgba(245,200,66,0.12); border: 1px solid rgba(245,200,66,0.3); color: #F5C842;"
+    onmouseover="this.style.background='rgba(245,200,66,0.22)'"
+    onmouseout="this.style.background='rgba(245,200,66,0.12)'">
+    💬 <span class="hidden sm:inline">Feedback / Issue</span><span class="sm:hidden">Feedback</span>
+  </a>
+
   <script src="js/config.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/drive.js"></script>
@@ -76,6 +86,7 @@
   <script src="js/pages/home.js"></script>
   <script src="js/pages/dashboard.js"></script>
   <script src="js/pages/profile.js"></script>
+  <script src="js/pages/privacy.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/app.js"></script>
 </body>

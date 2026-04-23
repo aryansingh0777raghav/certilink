@@ -107,15 +107,15 @@ const ProfilePage = (() => {
           <button onclick="document.getElementById('shareModal').classList.add('hidden')"
             class="absolute top-4 right-4 opacity-40 hover:opacity-100 text-lg">✕</button>
           <h3 class="font-display font-bold text-xl mb-2">Share this portfolio</h3>
-          <p class="text-sm opacity-50 mb-5">Copy the link below or scan the QR code.</p>
-          <div class="flex gap-2 mb-5">
+          <p class="text-sm opacity-50 mb-5">Copy the link below and share it with anyone.</p>
+          <div class="flex gap-2 mb-4">
             <input value="${profileUrl}" readonly
               class="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs font-mono" />
             <button id="copyShareBtn" class="btn btn-gold text-xs py-2 px-4">Copy</button>
           </div>
-          <div class="flex justify-center">
-            <div id="profileQR" class="p-3 bg-white rounded-xl"></div>
-          </div>
+          <a href="${profileUrl}" target="_blank" class="btn btn-ghost text-xs w-full justify-center">
+            Open in new tab →
+          </a>
         </div>
       </div>
     `;
@@ -123,17 +123,6 @@ const ProfilePage = (() => {
     // Bind share button
     document.getElementById('shareProfileBtn')?.addEventListener('click', () => {
       document.getElementById('shareModal').classList.remove('hidden');
-      const qrEl = document.getElementById('profileQR');
-      qrEl.innerHTML = '';
-      try {
-        new QRCode(qrEl, {
-          text: profileUrl,
-          width: 160, height: 160,
-          colorDark: '#0D0D12',
-          colorLight: '#ffffff',
-          correctLevel: QRCode.CorrectLevel.M,
-        });
-      } catch {}
     });
     document.getElementById('copyShareBtn')?.addEventListener('click', () => {
       navigator.clipboard.writeText(profileUrl).then(() => UI.toast('Link copied!', 'success'));
